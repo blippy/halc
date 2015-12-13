@@ -3,7 +3,7 @@ module Lexer where
 
 }
 
-%wrapper "basic"
+%wrapper "posn"
 
 $digit = 0-9
 $white = [\ \t \r \n]
@@ -14,20 +14,20 @@ tokens :-
 
   $white+     ;
   "#".*    ;
-  $alpha+  { \s -> TkVar s }
-  $digit+  { \s -> TkNum (read s::Float) }
-  $op      { \s -> TkOp s }
-  "="      { \s -> TkEq }
+  $alpha+  { \pos s -> TkVar (pos, s) }
+  $digit+  { \pos s -> TkNum (read s::Float) }
+  $op      { \pos s -> TkOp s }
+  "="      { \pos s -> TkEq }
+  .        { \pos s  -> TkUnknown (pos, s) }
 {
 
 data Token =
-     TkVar String
+     TkVar (AlexPosn, String)
      | TkNum Float
      | TkOp String
      | TkEq
+     | TkUnknown (AlexPosn, String)
      deriving (Eq, Show)
 
-lexTest = do
-  let ts = alexScanTokens "myvar = 12 + 13"
-  print $ show ts
+
 }

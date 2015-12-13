@@ -1,27 +1,36 @@
 module Main where
 
+import Control.Exception
+import Data.Map.Lazy as M
+
+import Exceptions
 import Eval
 import Grammar
 import Lexer
 
-g4 = evalExprs m0 $ parz $ alex "x = 5 + 6 z = x + 7 * x"
+evalStr :: Varmap -> String -> (Varmap, Float)
 evalStr vm0 str = evalExprs vm0 $ parz $ alex str
 
+
+handler :: HalcException -> IO ()
+handler e =  putStrLn $ "Exception caught: " ++ show e
+
 psl = putStrLn
+repl :: Varmap -> IO ()
 repl vmap = do
   putStr "> "
   exp <- getLine
   if exp == "q" then psl "Bye" else do
     let (vmap', f) = evalStr vmap exp
-    print f
+    --print f
+    handle handler  (print f)
     repl vmap'
 
   
 main = do
   psl "Type q to quit"
-  repl m0
-  --repl
-  --psl "Bye"
+  repl  M.empty --([]::Varmap)
+
   
 alex = alexScanTokens
 rung str = parz $ alexScanTokens str

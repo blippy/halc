@@ -1,7 +1,9 @@
 module Eval where
 
+import Control.Exception
 import Data.Map.Lazy as M
 
+import Exceptions
 import Expr
 
 type Varmap = M.Map String Float
@@ -13,14 +15,11 @@ evalTerm vmap term = do
   -- let et x = evalTerm varMap x
   case term of
    Num f -> f
-   Var s -> case M.lookup s vmap of
+   Var (pos, s) -> case M.lookup s vmap of
              Just v -> v
-             Nothing -> error $ "No variable: " ++ s
+             Nothing -> throw $ NoVarException  ("No variable: " ++ show s ++ " at position " ++ show pos)
    Binop op t1 t2 -> evalBinop vmap op t1 t2
 
-
-m0 = (M.fromList [("foo", 12)])
-e1 = evalTerm m0  (Var "foo")
 
 
 evalBinop:: Varmap -> String -> Term -> Term -> Float
@@ -39,7 +38,6 @@ evalBinop vmap op t1 t2 =
 
 
 
-e2 = evalBinop m0 "*" (Var "foo") (Num 10)
 
 evalExpr :: Varmap -> Expr -> (Varmap, Float)
 evalExpr vmap e =
